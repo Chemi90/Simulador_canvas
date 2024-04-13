@@ -3,12 +3,10 @@ const ctx = canvas.getContext('2d');
 const detectionCanvas = document.createElement('canvas');
 const detectionCtx = detectionCanvas.getContext('2d');
 
-// Asegúrate de que el canvas de detección tenga las mismas dimensiones que el principal
-detectionCanvas.width = window.innerWidth;
-detectionCanvas.height = window.innerHeight;
-
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+detectionCanvas.width = window.innerWidth;
+detectionCanvas.height = window.innerHeight;
 
 // Configura las rutas a las imágenes principales y de superposición para cada paso
 const steps = [
@@ -16,8 +14,7 @@ const steps = [
         mainImage: 'imagen1.png',
         overlayImage: 'imagen_superposicion1.png',
         detectionImage: 'imagen_superposicion1_no_transparente.png'
-    },
-    {
+    },{
         mainImage: 'imagen2.png',
         overlayImage: 'imagen_superposicion2.png',
         detectionImage: 'imagen_superposicion2_no_transparente.png'
@@ -41,7 +38,7 @@ const steps = [
         mainImage: 'imagen6.png',
         overlayImage: 'imagen_superposicion6.png',
         detectionImage: 'imagen_superposicion6_no_transparente.png'
-    },
+    }
     // Agrega más pasos según sea necesario
 ];
 
@@ -75,33 +72,37 @@ async function drawStep(stepIndex) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(mainImage, centerX, centerY, scaledWidth, scaledHeight);
-
-    // Establece opacidad cero para la imagen de superposición mientras se dibuja
-    ctx.globalAlpha = 0.0;
+    ctx.globalAlpha = 0.0; // Opacidad cero para la imagen de superposición
     ctx.drawImage(overlayImage, centerX, centerY, scaledWidth, scaledHeight);
     ctx.globalAlpha = 1.0;
 
-    // Preparar el canvas de detección sin mostrarlo
     detectionCtx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
     detectionCtx.drawImage(detectionImage, centerX, centerY, scaledWidth, scaledHeight);
 }
 
-// Evento de clic en el canvas
-canvas.addEventListener('click', async (event) => {
-    const x = event.clientX - canvas.offsetLeft;
-    const y = event.clientY - canvas.offsetTop;
+function handleInteraction(event) {
+    event.preventDefault(); // Prevenir acciones por defecto
+    let x, y;
 
-    // Obtener datos del color en el canvas de detección
+    if (event.type.includes('touch')) {
+        x = event.touches[0].clientX - canvas.offsetLeft;
+        y = event.touches[0].clientY - canvas.offsetTop;
+    } else {
+        x = event.clientX - canvas.offsetLeft;
+        y = event.clientY - canvas.offsetTop;
+    }
+
     const pixelData = detectionCtx.getImageData(x, y, 1, 1).data;
+    console.log(`Color en el punto de interacción: R=${pixelData[0]}, G=${pixelData[1]}, B=${pixelData[2]}, A=${pixelData[3]}`);
 
-    console.log(`Color en el punto de clic: R=${pixelData[0]}, G=${pixelData[1]}, B=${pixelData[2]}, A=${pixelData[3]}`);
-
-    // Comprobar si el color es rojo
     if (pixelData[0] > 100 && pixelData[1] < 50 && pixelData[2] < 50) {
         currentStep = (currentStep + 1) % steps.length;
-        await drawStep(currentStep);
+        drawStep(currentStep);
     }
-});
+}
+
+canvas.addEventListener('click', handleInteraction);
+canvas.addEventListener('touchstart', handleInteraction);
 
 // Inicia mostrando el primer paso
 drawStep(currentStep);
