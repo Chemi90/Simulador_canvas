@@ -14,7 +14,8 @@ const steps = [
         mainImage: 'imagen1.png',
         overlayImage: 'imagen_superposicion1.png',
         detectionImage: 'imagen_superposicion1_no_transparente.png'
-    },{
+    },
+    {
         mainImage: 'imagen2.png',
         overlayImage: 'imagen_superposicion2.png',
         detectionImage: 'imagen_superposicion2_no_transparente.png'
@@ -39,7 +40,6 @@ const steps = [
         overlayImage: 'imagen_superposicion6.png',
         detectionImage: 'imagen_superposicion6_no_transparente.png'
     }
-    // Agrega más pasos según sea necesario
 ];
 
 let currentStep = 0;
@@ -76,20 +76,23 @@ async function drawStep(stepIndex) {
     detectionCtx.drawImage(detectionImage, centerX, centerY, scaledWidth, scaledHeight);
 }
 
-function handleInteraction(event) {
+function getCanvasCoords(event) {
+    const rect = canvas.getBoundingClientRect();
     let x, y;
-
-    if (event.type === 'touchstart') {
-        x = event.touches[0].clientX - canvas.offsetLeft;
-        y = event.touches[0].clientY - canvas.offsetTop;
-        // event.preventDefault(); // Comentado para permitir zoom y otros comportamientos predeterminados
-    } else { // Evento de clic
-        x = event.clientX - canvas.offsetLeft;
-        y = event.clientY - canvas.offsetTop;
+    if (event.type.includes('touch')) {
+        x = event.touches[0].clientX - rect.left;
+        y = event.touches[0].clientY - rect.top;
+    } else {
+        x = event.clientX - rect.left;
+        y = event.clientY - rect.top;
     }
+    return { x, y };
+}
+
+function handleInteraction(event) {
+    const { x, y } = getCanvasCoords(event);
 
     const pixelData = detectionCtx.getImageData(x, y, 1, 1).data;
-
     console.log(`Color en el punto de interacción: R=${pixelData[0]}, G=${pixelData[1]}, B=${pixelData[2]}, A=${pixelData[3]}`);
 
     if (pixelData[0] > 100 && pixelData[1] < 50 && pixelData[2] < 50) {
@@ -104,10 +107,14 @@ canvas.addEventListener('touchstart', handleInteraction);
 drawStep(currentStep);
 
 function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    detectionCanvas.width = window.innerWidth;
-    detectionCanvas.height = window.innerHeight;
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * ratio;
+    canvas.height = window.innerHeight * ratio;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+
+    detectionCanvas.width = canvas.width;
+    detectionCanvas.height = canvas.height;
     drawStep(currentStep);
 }
 
