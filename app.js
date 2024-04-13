@@ -3,19 +3,12 @@ const ctx = canvas.getContext('2d');
 const detectionCanvas = document.createElement('canvas');
 const detectionCtx = detectionCanvas.getContext('2d');
 
-detectionCanvas.width = window.innerWidth;
-detectionCanvas.height = window.innerHeight;
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
 const steps = [
     {
         mainImage: 'imagen1.png',
         overlayImage: 'imagen_superposicion1.png',
         detectionImage: 'imagen_superposicion1_no_transparente.png'
-    },
-    {
+    },{
         mainImage: 'imagen2.png',
         overlayImage: 'imagen_superposicion2.png',
         detectionImage: 'imagen_superposicion2_no_transparente.png'
@@ -40,9 +33,30 @@ const steps = [
         overlayImage: 'imagen_superposicion6.png',
         detectionImage: 'imagen_superposicion6_no_transparente.png'
     }
+    // Agrega más pasos según sea necesario
 ];
 
 let currentStep = 0;
+
+function resizeCanvas() {
+    const ratio = window.devicePixelRatio || 1;
+    const displayWidth = window.innerWidth;
+    const displayHeight = window.innerHeight;
+
+    canvas.width = displayWidth * ratio;
+    canvas.height = displayHeight * ratio;
+    canvas.style.width = displayWidth + 'px';
+    canvas.style.height = displayHeight + 'px';
+
+    detectionCanvas.width = canvas.width;
+    detectionCanvas.height = canvas.height;
+
+    drawStep(currentStep); // Redibujar el contenido del canvas
+}
+
+// Coloca esta llamada después de la inicialización de currentStep
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
 
 function loadImage(src) {
     return new Promise((resolve, reject) => {
@@ -78,21 +92,22 @@ async function drawStep(stepIndex) {
 
 function getCanvasCoords(event) {
     const rect = canvas.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
     let x, y;
     if (event.type.includes('touch')) {
-        x = event.touches[0].clientX - rect.left;
-        y = event.touches[0].clientY - rect.top;
+        x = (event.touches[0].clientX - rect.left) * ratio;
+        y = (event.touches[0].clientY - rect.top) * ratio;
     } else {
-        x = event.clientX - rect.left;
-        y = event.clientY - rect.top;
+        x = (event.clientX - rect.left) * ratio;
+        y = (event.clientY - rect.top) * ratio;
     }
     return { x, y };
 }
 
 function handleInteraction(event) {
     const { x, y } = getCanvasCoords(event);
-
     const pixelData = detectionCtx.getImageData(x, y, 1, 1).data;
+
     console.log(`Color en el punto de interacción: R=${pixelData[0]}, G=${pixelData[1]}, B=${pixelData[2]}, A=${pixelData[3]}`);
 
     if (pixelData[0] > 100 && pixelData[1] < 50 && pixelData[2] < 50) {
@@ -104,18 +119,4 @@ function handleInteraction(event) {
 canvas.addEventListener('click', handleInteraction);
 canvas.addEventListener('touchstart', handleInteraction);
 
-drawStep(currentStep);
-
-function resizeCanvas() {
-    const ratio = window.devicePixelRatio || 1;
-    canvas.width = window.innerWidth * ratio;
-    canvas.height = window.innerHeight * ratio;
-    canvas.style.width = window.innerWidth + 'px';
-    canvas.style.height = window.innerHeight + 'px';
-
-    detectionCanvas.width = canvas.width;
-    detectionCanvas.height = canvas.height;
-    drawStep(currentStep);
-}
-
-window.addEventListener('resize', resizeCanvas);
+drawStep(currentStep);  // Inicia mostrando el primer paso
