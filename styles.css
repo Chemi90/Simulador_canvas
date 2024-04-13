@@ -1,12 +1,13 @@
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+body, html {
     margin: 0;
-    background-color: #f0f0f0;
+    padding: 0;
+    overflow: hidden; /* Evita barras de desplazamiento */
+    height: 100%; /* Ocupa toda la altura de la pantalla */
 }
 
 canvas {
-    border: 1px solid black;
+    display: block; /* Elimina márgenes extra */
+    background-color: #f0f0f0;
+    width: 100vw; /* Ajusta el canvas al 100% del ancho de la ventana */
+    height: 100vh; /* Ajusta el canvas al 100% de la altura de la ventana */
 }
