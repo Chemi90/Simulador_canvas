@@ -33,7 +33,6 @@ const steps = [
         overlayImage: 'imagen_superposicion6.png',
         detectionImage: 'imagen_superposicion6_no_transparente.png'
     }
-    // Agrega más pasos según sea necesario
 ];
 
 let currentStep = 0;
@@ -110,8 +109,11 @@ function handleInteraction(event) {
 
     console.log(`Color en el punto de interacción: R=${pixelData[0]}, G=${pixelData[1]}, B=${pixelData[2]}, A=${pixelData[3]}`);
 
-    if (pixelData[0] > 100 && pixelData[1] < 50 && pixelData[2] < 50) {
+    if (pixelData[0] > 100 && pixelData[1] < 50 && pixelData[2] < 50) { // Detecta rojo
         currentStep = (currentStep + 1) % steps.length;
+        drawStep(currentStep);
+    } else if (pixelData[0] < 50 && pixelData[1] < 50 && pixelData[2] < 50) { // Detecta negro
+        currentStep = (currentStep - 1 + steps.length) % steps.length; // Retrocede una imagen, usando módulo para evitar índices negativos
         drawStep(currentStep);
     }
 }
